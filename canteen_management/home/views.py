@@ -18,7 +18,7 @@ def login_page(request):
         password = request.POST.get('password')
 
         if username == 'admin' and password == 'admin123':
-            return render(request, 'admin.html')
+            return redirect('/admin_page/')
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -92,6 +92,8 @@ def admin_update_item(request, item_id):
         return redirect('/admin_page/')
     context = {'item': item}
     return render(request, 'update_admin.html', context)
+
+
 
 def admin_delete_item(request, item_id):
     item= Inventory.objects.get(id=item_id)

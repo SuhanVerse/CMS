@@ -1,5 +1,24 @@
-{%extends "index.html" %} {%block start%}
+{% extends "index.html" %}
+{% block start %}
 
-<p>Menu Block</p>
+
+  <!-- Header -->
+<div class="row bg-dark text-white py-3 mb-4 align-items-center">
+    <div class="col-md-6 col-12">
+      <h3 class="mb-0">
+        <i class="fa fa-utensils"></i> Canteen Menu 
+      </h3>
+    </div>
+    <div class="col-md-6 col-12 text-md-end mt-2 mt-md-0">
+      <span class="me-3">Welcome, {{ user.username }}</span>
+      <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
+        <i class="fa fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+  </div>
+
+<div class="container">
+
+</div>
 
 {% endblock %}

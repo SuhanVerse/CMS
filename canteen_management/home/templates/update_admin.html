@@ -56,11 +56,11 @@
               </label>
               <select class="form-select" name="category" required>
                 <option value="">Select Category</option>
-                <option value="Snacks" {% if item.category == "Snacks" %}selected{% endif %}>Snacks</option>
-                <option value="Beverages" {% if item.category == "Beverages" %}selected{% endif %}>Beverages</option>
-                <option value="Main Course" {% if item.category == "Main Course" %}selected{% endif %}>Main Course</option>
-                <option value="Desserts" {% if item.category == "Desserts" %}selected{% endif %}>Desserts</option>
-                <option value="Other" {% if item.category == "Other" %}selected{% endif %}>Other</option>
+                <option value="snacks" {% if item.category == "snacks" %}selected{% endif %}>Snacks</option>
+                <option value="beverages" {% if item.category == "beverages" %}selected{% endif %}>Beverages</option>
+                <option value="main_course" {% if item.category == "main_course" %}selected{% endif %}>Main Course</option>
+                <option value="desserts" {% if item.category == "desserts" %}selected{% endif %}>Desserts</option>
+                <option value="other" {% if item.category == "other" %}selected{% endif %}>Other</option>
               </select>
             </div>
 
