@@ -2,14 +2,24 @@
 {% block start %}
 
 
+<!-- <i class="fa fa-utensils"></i> Canteen Menu  -->
   <!-- Header -->
-<div class="row bg-dark text-white py-3 mb-4 align-items-center">
-    <div class="col-md-6 col-12">
-      <h3 class="mb-0">
+<div style="display: flex;
+align-items: center;
+justify-content: space-between;
+padding:14px;
+background-color: #1f1f1f;
+color: #e1e1e1  
+">
+    <div >
+      <h3 >
         <i class="fa fa-utensils"></i> Canteen Menu 
       </h3>
     </div>
-    <div class="col-md-6 col-12 text-md-end mt-2 mt-md-0">
+    <div style="display: flex;
+    gap:3px;
+    align-items: center;
+    ">
       <span class="me-3">Welcome, {{ user.username }}</span>
       <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
         <i class="fa fa-sign-out-alt"></i> Logout
@@ -17,7 +27,31 @@
     </div>
   </div>
 
-<div class="container">
+<div  style="display: flex;
+  flex-direction: row;
+  height: calc(105vh - 100px);
+  width:full;">
+  <!-- right side -->
+
+  <div style="flex:3.5; 
+  background-color: #e1e1e1;
+  padding: 5;
+  ">
+ 
+    <div>
+      
+
+    </div>
+
+  </div>
+
+
+  <!-- left side -->
+   <div style=" flex:1.5;
+   background-color: red;"
+   >
+
+   </div>
 
 </div>
 
