@@ -1,4 +1,6 @@
-from django.shortcuts import render,redirect
+from functools import wraps
+
+from django.shortcuts import get_object_or_404, render,redirect
 from django.contrib.auth.decorators import login_required
 from accounts.models import CustomUser
 from inventory.models import Inventory
@@ -8,6 +10,20 @@ import re
 
 
 # Create your views here.
+
+
+def admin_required(view_func):
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+        user = request.user
+        if user.is_staff or user.is_superuser or user.role == 'admin':
+            return view_func(request, *args, **kwargs)
+
+        messages.error(request, 'You do not have permission to access the admin dashboard.')
+        return redirect('/menu/')
+
+    return _wrapped_view
 
 def index_page(request):
     return render(request, 'index.html')
@@ -24,7 +40,7 @@ def login_page(request):
             login(request, user)
 
             # Admin / Staff redirect
-            if user.is_superuser or user.is_staff:
+            if user.is_superuser or user.is_staff or user.role == 'admin':
                 return redirect('/admin_page/')
 
             # Normal user redirect
@@ -61,7 +77,7 @@ def logout_view(request):
     logout(request)
     return render(request, 'index.html')
 
-@login_required(login_url='/login/')
+@admin_required
 def admin_page(request):
     if request.method == 'POST':
         item_name = request.POST.get('item_name')
@@ -83,8 +99,9 @@ def admin_page(request):
        
     return render(request, 'admin.html', context)
 
+@admin_required
 def admin_update_item(request, item_id):
-    item = Inventory.objects.get(id=item_id)
+    item = get_object_or_404(Inventory, id=item_id)
     if request.method == 'POST':
         item.item_name = request.POST.get('item_name')
         item.category = request.POST.get('category')
@@ -101,8 +118,9 @@ def admin_update_item(request, item_id):
 
 
 
+@admin_required
 def admin_delete_item(request, item_id):
-    item= Inventory.objects.get(id=item_id)
+    item = get_object_or_404(Inventory, id=item_id)
     item.delete()
     messages.info(request, 'Item deleted successfully!')
 
