@@ -30,7 +30,11 @@
       <div class="row g-2">
         {% for item in inventory %}
         <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-6 col-6">
-          <div class="card food-card h-100 border-0 shadow-sm">
+          <div
+            class="card food-card h-100 border-0 shadow-sm"
+            data-item-id="{{ item.id }}"
+            data-stock="{{ item.quantity }}"
+          >
             
             <!-- Food Image Container -->
             <div class="position-relative overflow-hidden" style="height: 120px; background-color: #e9ecef;">
@@ -60,6 +64,7 @@
               <!-- Price -->
               <div class="mb-2">
                 <span class="fw-bold text-success" style="font-size: 0.95rem;">Rs {{ item.price }}</span>
+                <div class="small text-muted">Available: {{ item.quantity }}</div>
               </div>
 
               <!-- Quantity Selector -->
@@ -79,9 +84,15 @@
                 data-name="{{ item.item_name }}"
                 data-price="{{ item.price }}" 
                 data-item-id="{{ item.id }}"
+                data-stock="{{ item.quantity }}"
                 style="transition: all 0.3s ease; font-size: 0.75rem; padding: 0.35rem 0.5rem;"
+                {% if item.quantity < 1 %}disabled{% endif %}
               >
+                {% if item.quantity < 1 %}
+                <i class="fa fa-ban me-1"></i>Out of stock
+                {% else %}
                 <i class="fa fa-cart-plus me-1"></i>Add
+                {% endif %}
               </button>
 
             </div>
@@ -247,15 +258,63 @@
 
 
 
+  const stockByItemId = {};
+
+  function getSafeQuantity(value) {
+    const quantity = Number.parseInt(value, 10);
+    return Number.isInteger(quantity) ? quantity : 0;
+  }
+
+  function sanitizeCart(rawCart) {
+    const sanitizedCart = {};
+
+    if (!rawCart || typeof rawCart !== 'object') {
+      return sanitizedCart;
+    }
+
+    Object.entries(rawCart).forEach(([itemId, item]) => {
+      const availableStock = getSafeQuantity(stockByItemId[itemId]);
+      const quantity = getSafeQuantity(item && item.quantity);
+      const price = Number.parseFloat(item && item.price);
+
+      if (availableStock < 1 || quantity < 1 || !Number.isFinite(price)) {
+        return;
+      }
+
+      sanitizedCart[itemId] = {
+        name: item && item.name ? item.name : 'Item',
+        price: price,
+        quantity: Math.min(quantity, availableStock),
+      };
+    });
+
+    return sanitizedCart;
+  }
+
   // Quantity selector functionality
   document.querySelectorAll('.food-card').forEach(card => {
+    const itemId = card.dataset.itemId;
+    const availableStock = getSafeQuantity(card.dataset.stock);
     const minusBtn = card.querySelector('.minus');
     const plusBtn = card.querySelector('.plus');
     const qtyValue = card.querySelector('.qty-value');
+    const addBtn = card.querySelector('.add-to-cart');
+
+    stockByItemId[itemId] = availableStock;
+
+    if (availableStock < 1) {
+      qtyValue.textContent = '0';
+      minusBtn.disabled = true;
+      plusBtn.disabled = true;
+      addBtn.disabled = true;
+      return;
+    }
+
+    qtyValue.textContent = '1';
 
     minusBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      let currentQty = parseInt(qtyValue.textContent);
+      const currentQty = getSafeQuantity(qtyValue.textContent);
       if (currentQty > 1) {
         qtyValue.textContent = currentQty - 1;
       }
@@ -263,40 +322,54 @@
 
     plusBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      let currentQty = parseInt(qtyValue.textContent);
-      if (currentQty < 99) {
+      const currentQty = getSafeQuantity(qtyValue.textContent);
+      if (currentQty < availableStock) {
         qtyValue.textContent = currentQty + 1;
       }
     });
   });
 
+  let cart = sanitizeCart(JSON.parse(localStorage.getItem('cart')) || {});
+  saveCart();
+  renderCart();
 
+  function addToCart(id, name, price, quantity) {
+    const availableStock = getSafeQuantity(stockByItemId[id]);
+    const safeQuantity = getSafeQuantity(quantity);
 
-let cart = JSON.parse(localStorage.getItem('cart')) || {} ;
-renderCart()
-
-
-
-
-function addToCart(id, name, price, quantity) {
-
-    if (cart[id]) {
-        cart[id].quantity += quantity;
-    } else {
-        cart[id] = {
-            name: name,
-            price: price,
-            quantity: quantity
-        };
+    if (availableStock < 1) {
+      alert(`${name} is currently out of stock.`);
+      return false;
     }
+
+    if (safeQuantity < 1) {
+      alert('Please choose at least 1 item.');
+      return false;
+    }
+
+    const existingQuantity = cart[id] ? cart[id].quantity : 0;
+    const nextQuantity = Math.min(existingQuantity + safeQuantity, availableStock);
+
+    if (nextQuantity === existingQuantity) {
+      alert(`Only ${availableStock} ${name} item(s) available.`);
+      return false;
+    }
+
+    cart[id] = {
+      name: name,
+      price: price,
+      quantity: nextQuantity
+    };
 
     saveCart();
     renderCart();
-}
+    return true;
+  }
 
-function saveCart(){
-  localStorage.setItem("cart",JSON.stringify(cart));
-}
+  function saveCart(){
+    cart = sanitizeCart(cart);
+    localStorage.setItem("cart",JSON.stringify(cart));
+  }
 
 function renderCart() {
 
@@ -378,9 +451,13 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
 
         const card = this.closest('.food-card');
         const qtyElement = card.querySelector('.qty-value');
-        const quantity = qtyElement ? parseInt(qtyElement.textContent) : 1;
+        const quantity = qtyElement ? getSafeQuantity(qtyElement.textContent) : 1;
 
-        addToCart(itemId, name, price, quantity);
+        const wasAdded = addToCart(itemId, name, price, quantity);
+
+        if (!wasAdded) {
+            return;
+        }
 
         // Visual feedback
         this.innerHTML = '<i class="fa fa-check me-1"></i>Added!';
@@ -394,6 +471,8 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
 
 
 function checkout() {
+    cart = sanitizeCart(cart);
+    saveCart();
 
     if (Object.keys(cart).length === 0) {
         alert("Cart is empty!");
