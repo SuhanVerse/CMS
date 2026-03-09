@@ -1,5 +1,7 @@
 from functools import wraps
 
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, render,redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -7,7 +9,6 @@ from accounts.models import CustomUser
 from inventory.models import Inventory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-import re
 
 
 # Create your views here.
@@ -18,7 +19,7 @@ def admin_required(view_func):
     @login_required(login_url='/login/')
     def _wrapped_view(request, *args, **kwargs):
         user = request.user
-        if user.is_staff or user.is_superuser or user.role == 'admin':
+        if user.is_canteen_admin:
             return view_func(request, *args, **kwargs)
 
         messages.error(request, 'You do not have permission to access the admin dashboard.')
@@ -41,7 +42,7 @@ def login_page(request):
             login(request, user)
 
             # Admin / Staff redirect
-            if user.is_superuser or user.is_staff or user.role == 'admin':
+            if user.is_canteen_admin:
                 return redirect('/admin_page/')
 
             # Normal user redirect
@@ -54,12 +55,12 @@ def login_page(request):
 
 def register_page(request):
     if request.method == 'POST':
-        user_code=request.POST.get('user_code')
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        role = request.POST.get('role')
+        user_code = (request.POST.get('user_code') or '').strip()
+        username = (request.POST.get('username') or '').strip()
+        password = request.POST.get('password') or ''
+        role = (request.POST.get('role') or '').strip()
 
-        if not user_code or not re.match(r'^[0-9]{5}$', user_code):
+        if not CustomUser.is_valid_user_code(user_code):
             messages.error(request, 'UserCode must be exactly 5 numeric characters')
             return redirect('/register/')
 
@@ -67,8 +68,25 @@ def register_page(request):
             messages.error(request, 'Username already exists')
             return redirect('/register/')
 
-        user = CustomUser.objects.create_user(username=username, password=password, role=role, user_code=user_code)
-        user.save()
+        if CustomUser.objects.filter(user_code=user_code).exists():
+            messages.error(request, 'UserCode already exists')
+            return redirect('/register/')
+
+        if role not in CustomUser.registration_roles():
+            messages.error(request, 'Invalid role selected')
+            return redirect('/register/')
+
+        try:
+            CustomUser.objects.create_user(
+                username=username,
+                password=password,
+                role=role,
+                user_code=user_code,
+            )
+        except (IntegrityError, ValidationError, ValueError):
+            messages.error(request, 'Unable to register user with the provided details')
+            return redirect('/register/')
+
         return redirect('/login/')
     return render(request, 'register.html')
 
