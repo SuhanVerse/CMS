@@ -79,8 +79,9 @@ def register_page(request):
 
 
 def logout_view(request):
+    user_id = request.user.id if request.user.is_authenticated else None
     logout(request)
-    return render(request, 'index.html')
+    return render(request, 'index.html', {'clear_cart_user_id': user_id})
 
 @admin_required
 def admin_page(request):

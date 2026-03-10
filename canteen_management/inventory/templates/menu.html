@@ -378,7 +378,11 @@
     });
   });
 
-  let cart = sanitizeCart(JSON.parse(localStorage.getItem('cart')) || {});
+  const cartStorageKey = `cart_{{ user.id }}`;
+  if (localStorage.getItem('cart')) {
+    localStorage.removeItem('cart');
+  }
+  let cart = sanitizeCart(JSON.parse(localStorage.getItem(cartStorageKey)) || {});
   saveCart();
   renderCart();
 
@@ -417,7 +421,7 @@
 
   function saveCart(){
     cart = sanitizeCart(cart);
-    localStorage.setItem("cart",JSON.stringify(cart));
+    localStorage.setItem(cartStorageKey, JSON.stringify(cart));
   }
 
 function renderCart() {
