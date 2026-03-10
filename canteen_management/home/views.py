@@ -2,6 +2,7 @@ from functools import wraps
 
 from django.shortcuts import get_object_or_404, render,redirect
 from django.contrib.auth.decorators import login_required
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from inventory.models import Inventory
 from django.contrib import messages
@@ -32,6 +33,8 @@ def index_page(request):
 
 
 def login_page(request):
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
+
     if request.method == 'POST':
         username = request.POST.get('username').strip()
         password = request.POST.get('password').strip()
@@ -40,6 +43,13 @@ def login_page(request):
 
         if user is not None:
             login(request, user)
+
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
 
             # Admin / Staff redirect
             if user.is_canteen_admin:
@@ -50,7 +60,7 @@ def login_page(request):
         else:
             messages.error(request, 'Invalid username or password')
 
-    return render(request, 'login.html')
+    return render(request, 'login.html', {'next': next_url})
 
 
 def register_page(request):

@@ -7,6 +7,9 @@
 <div class="center-ctn shadow-lg">
     <form class="card p-4 shadow-lg" method="post" style="width: min(520px, 92%);">
         {% csrf_token %}
+        {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
 
         <div class="mb-3">
             <h2 class="text-center">Log In</h2>
