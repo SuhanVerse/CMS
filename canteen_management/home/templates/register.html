@@ -5,7 +5,7 @@
 <div class="bg-overlay"></div>
 
 <div class="center-ctn shadow-lg">
-  <form class="card p-4 shadow-lg auth-card-wide" method="post" enctype="multipart/form-data">
+  <form class="card p-4 shadow-lg auth-card-wide auth-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="mb-3">
       <h2 class="text-center">Register</h2>
@@ -24,24 +24,33 @@
       {% for error in form.role.errors %}
       <div class="text-danger small mb-2">{{ error }}</div>
       {% endfor %}
+      <div class="auth-hint">Only students and teachers can register.</div>
 
       <label class="form-label">UserCode:</label>
       {{ form.user_code }}
       {% for error in form.user_code.errors %}
       <div class="text-danger small mb-2">{{ error }}</div>
       {% endfor %}
+      <div class="auth-hint">5 digit college user code.</div>
 
       <label class="form-label">Username:</label>
       {{ form.username }}
       {% for error in form.username.errors %}
       <div class="text-danger small mb-2">{{ error }}</div>
       {% endfor %}
+      <div class="auth-hint">Use a unique username.</div>
 
       <label class="form-label">Password:</label>
-      {{ form.password }}
+      <div class="input-group">
+        {{ form.password }}
+        <button class="btn btn-outline-secondary" type="button" id="register-toggle">
+          <i class="fa fa-eye"></i>
+        </button>
+      </div>
       {% for error in form.password.errors %}
       <div class="text-danger small mb-2">{{ error }}</div>
       {% endfor %}
+      <div class="auth-hint">Use at least 8 characters with a mix of letters and numbers.</div>
 
       <p class="mt-2">Already have an account? <a href="/login/">Log In</a></p>
 
@@ -61,5 +70,17 @@
     </div>
   </form>
 </div>
+
+<script>
+  const registerToggle = document.getElementById('register-toggle');
+  const registerPassword = document.querySelector('input[name="password"]');
+  if (registerToggle && registerPassword) {
+    registerToggle.addEventListener('click', () => {
+      const isHidden = registerPassword.type === 'password';
+      registerPassword.type = isHidden ? 'text' : 'password';
+      registerToggle.innerHTML = isHidden ? '<i class="fa fa-eye-slash"></i>' : '<i class="fa fa-eye"></i>';
+    });
+  }
+</script>
 
 {% endblock %}

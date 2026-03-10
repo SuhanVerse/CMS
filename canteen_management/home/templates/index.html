@@ -64,7 +64,7 @@
         .bg-overlay{
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.35);
+            background: rgba(0,0,0,0.5);
             z-index: -1;
         }
 
@@ -89,6 +89,20 @@
 
         .auth-card-wide {
             width: min(560px, 96%);
+        }
+
+        .auth-form .form-label {
+            margin-top: 0.25rem;
+        }
+
+        .auth-form .form-control,
+        .auth-form .form-select {
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-hint {
+            font-size: 0.8rem;
+            color: var(--muted);
         }
 
         .admin-action-group {
