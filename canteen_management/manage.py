@@ -2,10 +2,13 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
 
 
 def main():
     """Run administrative tasks."""
+    base_dir = Path(__file__).resolve().parent
+    os.chdir(base_dir)
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'canteen_management.settings')
     try:
         from django.core.management import execute_from_command_line
