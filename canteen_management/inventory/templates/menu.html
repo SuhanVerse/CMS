@@ -9,9 +9,12 @@
   </h3>
   <div class="d-flex align-items-center gap-3">
     <span class="fw-light">Welcome, <strong>{{ user.username }}</strong></span>
-    <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
-      <i class="fa fa-sign-out-alt"></i> Logout
-    </a>
+    <form method="post" action="{% url 'logout' %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">
+        <i class="fa fa-sign-out-alt"></i> Logout
+      </button>
+    </form>
   </div>
 </div>
 

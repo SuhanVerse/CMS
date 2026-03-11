@@ -80,6 +80,8 @@ def register_page(request):
 
 
 
+@require_POST
+@login_required(login_url='/login/')
 def logout_view(request):
     user_id = request.user.id if request.user.is_authenticated else None
     logout(request)
