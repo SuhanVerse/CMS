@@ -94,6 +94,12 @@ DB_CONN_MAX_AGE=600
 DB_SSL_REQUIRE=False
 ```
 
+Automated tests default to SQLite even if DATABASE_URL is set. If you want tests to run against PostgreSQL, set TEST_DATABASE_URL explicitly.
+
+```env
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/canteen_management_test
+```
+
 1. Set the local media path.
 
 ```env
@@ -199,6 +205,8 @@ python manage.py check
 python manage.py test
 python manage.py collectstatic --noinput
 ```
+
+When DJANGO_ENV=local, the test command uses SQLite by default so it does not depend on Railway or another managed PostgreSQL user being allowed to create test databases.
 
 ## Deployment Help
 
