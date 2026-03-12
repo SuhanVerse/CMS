@@ -1,5 +1,5 @@
 CANTEEN MANAGEMENT SYSTEM - PROJECT DIRECTORY DOCUMENTATION
-Updated: 2026-03-11
+Updated: 2026-03-12
 Workspace: /home/suhan/CMS
 
 ============================================================
@@ -7,13 +7,18 @@ Workspace: /home/suhan/CMS
 ============================================================
 
 Current root files and folders:
+- .env.example
 - .gitignore
 - README.md
 - PROJECT_DETAILED_DOCUMENTATION.md
 - PROJECT_DIRECTORY_DOCUMENTATION.txt
+- DEPLOYMENT_GUIDE.md
+- DBMS_VIVA_GUIDE.md
 - requirements.txt
+- Procfile
+- runtime.txt
+- data-migration.json
 - manage.py
-- db.sqlite3
 - canteen_management/
 - accounts/
 - home/
@@ -24,10 +29,11 @@ Current root files and folders:
 - myenv/
 - img/
 
-Important note:
-- The project now uses a root-level Django layout.
-- `manage.py` and the app directories are directly under `/home/suhan/CMS`.
-- The old nested-app path pattern is no longer correct.
+Important notes:
+- The project uses a root-level Django layout.
+- `manage.py` and app directories are directly under `/home/suhan/CMS`.
+- The Django configuration package remains `canteen_management/`.
+- Production deployment is prepared for Railway without Docker.
 
 ============================================================
 2) DJANGO ENTRY POINTS
@@ -39,13 +45,14 @@ Root command file:
 Purpose:
 - Django command entry point
 - sets `DJANGO_SETTINGS_MODULE` to `canteen_management.settings`
-- ensures commands run from the workspace root
+- runs from the repository root
 
 Common commands:
 - `python manage.py runserver`
 - `python manage.py check`
-- `python manage.py test`
 - `python manage.py makemigrations --check`
+- `python manage.py test`
+- `python manage.py collectstatic --noinput`
 
 ============================================================
 3) CONFIG PACKAGE
@@ -57,15 +64,21 @@ Path:
 Files:
 - __init__.py
 - settings.py
+- base.py
+- local.py
+- production.py
 - urls.py
+- media_views.py
 - asgi.py
 - wsgi.py
 
 Key facts:
-- `BASE_DIR` resolves to `/home/suhan/CMS`
-- SQLite database path is `/home/suhan/CMS/db.sqlite3`
-- static source directory is `/home/suhan/CMS/public/static`
-- uploaded media directory is `/home/suhan/CMS/public/media`
+- `settings.py` switches settings based on `DJANGO_ENV`
+- `base.py` contains shared apps, middleware, auth, templates, and static defaults
+- `local.py` supports SQLite by default and optional local PostgreSQL
+- `production.py` configures PostgreSQL, WhiteNoise, secure cookies, SSL, and HSTS
+- local media defaults to `/home/suhan/CMS/public/media`
+- production media is configured as `/app/media`
 - login URL is `/login/`
 - custom user model is `accounts.CustomUser`
 
@@ -75,17 +88,41 @@ Main URL routes:
 - `/register/`
 - `/logout/`
 - `/menu/`
+- `/api/inventory/`
 - `/checkout/`
 - `/receipt/<order_id>/`
 - `/admin_page/`
+- `/admin_page/api/inventory/`
 - `/admin_page/analytics/`
+- `/admin_page/analytics/api/`
 - `/admin_page/orders/`
+- `/admin_page/orders/api/`
 - `/admin_page/update_item/<item_id>/`
 - `/admin_page/delete_item/<item_id>/`
 - `/admin/`
 
 ============================================================
-4) ACCOUNTS APP
+4) DEPLOYMENT FILES
+============================================================
+
+Files:
+- requirements.txt
+- Procfile
+- runtime.txt
+- data-migration.json
+- .env.example
+- .gitignore
+
+Purpose:
+- `requirements.txt` defines Django and Railway dependencies
+- `Procfile` starts Gunicorn after collecting static files
+- `runtime.txt` pins Python 3.12.3
+- `data-migration.json` seeds production PostgreSQL data
+- `.env.example` documents local and Railway environment variables
+- `.gitignore` excludes `.env`, media, static build output, and virtual environments
+
+============================================================
+5) ACCOUNTS APP
 ============================================================
 
 Path:
@@ -101,10 +138,10 @@ Responsibilities:
 - custom user model
 - role logic
 - 5-digit `user_code` validation
-- Django admin registration
+- admin/staff enforcement for admins
 
 ============================================================
-5) HOME APP
+6) HOME APP
 ============================================================
 
 Path:
@@ -121,19 +158,25 @@ Important files:
 - home/templates/admin_analytics.html
 - home/templates/admin_orders.html
 - home/templates/update_admin.html
+- home/templates/widgets/admin_image_input.html
 
 Responsibilities:
 - landing page
-- login
-- registration
+- login and registration
 - logout
-- inventory admin dashboard
+- admin inventory dashboard
 - analytics page
 - orders page
 - update item page
+- custom inventory image input widget
+
+Recent UI notes:
+- admin inventory forms support `Clear Selection`
+- update forms support `Remove current image`
+- admin pages support silent AJAX refresh through JSON snapshot endpoints
 
 ============================================================
-6) INVENTORY APP
+7) INVENTORY APP
 ============================================================
 
 Path:
@@ -147,12 +190,17 @@ Important files:
 - inventory/migrations/
 
 Responsibilities:
-- inventory model
-- authenticated customer menu page
-- frontend cart interactions
+- stores menu items
+- exposes authenticated menu page
+- provides customer inventory JSON snapshots
+
+Menu behavior notes:
+- only available items with quantity greater than zero are shown to customers
+- AJAX polling refreshes stock silently every 10 seconds
+- fallback static image is used when no uploaded image exists
 
 ============================================================
-7) ORDERS APP
+8) ORDERS APP
 ============================================================
 
 Path:
@@ -166,12 +214,17 @@ Important files:
 - orders/migrations/
 
 Responsibilities:
-- order storage
-- order item storage
-- checkout processing
+- stores orders
+- stores order items
+- handles checkout processing
+
+Transaction notes:
+- checkout uses `transaction.atomic()`
+- inventory rows are locked with `select_for_update()`
+- payment and receipt creation happen inside the same logical transaction
 
 ============================================================
-8) PAYMENTS APP
+9) PAYMENTS APP
 ============================================================
 
 Path:
@@ -191,7 +244,7 @@ Responsibilities:
 - consistency audit and repair command
 
 ============================================================
-9) STATIC AND MEDIA FILES
+10) STATIC AND MEDIA FILES
 ============================================================
 
 Path:
@@ -202,48 +255,58 @@ Contents:
 - public/media/
 
 Usage:
-- `public/static/` stores CSS and static image assets
-- `public/media/` stores uploaded inventory item images
+- `public/static/` stores CSS and static image assets for local development
+- `public/media/` stores uploaded images locally
+- Railway production uses a persistent volume mounted at `/app/media`
 
 ============================================================
-10) DOCUMENTATION FILES
+11) DOCUMENTATION FILES
 ============================================================
 
 Files:
 - README.md
 - PROJECT_DETAILED_DOCUMENTATION.md
 - PROJECT_DIRECTORY_DOCUMENTATION.txt
+- DEPLOYMENT_GUIDE.md
+- DBMS_VIVA_GUIDE.md
 
 Purpose:
 - describe the current layout
-- document the correct root-level commands
-- remove stale nested-path references
+- document the split settings structure
+- explain Railway deployment and PostgreSQL usage
+- support university viva preparation
 
 ============================================================
-11) VERIFIED STATE
+12) VERIFIED STATE
 ============================================================
 
-Verified on 2026-03-11:
+Verified on 2026-03-12:
 - `python manage.py check` passes
-- `python manage.py test --verbosity 2` passes with 41 tests
 - `python manage.py makemigrations --check` reports no changes
-- main templates load successfully
+- `python manage.py test` passes with 51 tests
+- admin inventory, admin analytics, admin orders, menu, checkout, and receipt flows are covered by tests
 
 ============================================================
-12) MOST IMPORTANT FILES FOR FUTURE CHANGES
+13) MOST IMPORTANT FILES FOR FUTURE CHANGES
 ============================================================
 
 - manage.py
 - canteen_management/settings.py
+- canteen_management/base.py
+- canteen_management/local.py
+- canteen_management/production.py
 - canteen_management/urls.py
+- canteen_management/media_views.py
 - accounts/models.py
 - home/forms.py
 - home/views.py
 - home/templates/admin.html
+- home/templates/update_admin.html
 - home/templates/admin_analytics.html
 - home/templates/admin_orders.html
-- home/templates/update_admin.html
+- home/templates/widgets/admin_image_input.html
 - inventory/models.py
+- inventory/views.py
 - inventory/templates/menu.html
 - orders/models.py
 - orders/views.py
