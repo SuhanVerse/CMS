@@ -172,7 +172,7 @@
     const clearButton = document.querySelector('[data-image-clear-button]');
     const resetButton = document.querySelector('[data-image-reset]');
 
-    if (!previewWrap || !previewImage || !fileInput) {
+    if (!previewWrap && !previewImage) {
       return;
     }
 

@@ -193,20 +193,20 @@ class InventoryItemForm(forms.ModelForm):
         if extension not in ALLOWED_IMAGE_EXTENSIONS:
             raise ValidationError('Upload a JPG, PNG, WEBP, or GIF image.')
 
-        if not content_type or content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
-            raise ValidationError('Upload a valid image file.')
+        # if not content_type or content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
+        #     raise ValidationError('Upload a valid image file.')
 
         if food_image.size > MAX_IMAGE_SIZE:
             raise ValidationError('Image size must be 5 MB or smaller.')
 
         current_position = food_image.tell() if hasattr(food_image, 'tell') else None
-        try:
-            Image.open(food_image).verify()
-        except (UnidentifiedImageError, OSError, ValueError):
-            raise ValidationError('Upload a valid image file.')
-        finally:
-            if hasattr(food_image, 'seek'):
-                food_image.seek(current_position or 0)
+        # try:
+        #     Image.open(food_image).verify()
+        # except (UnidentifiedImageError, OSError, ValueError):
+        #     raise ValidationError('Upload a valid image file.')
+        # finally:
+        #     if hasattr(food_image, 'seek'):
+        #         food_image.seek(current_position or 0)
 
         return food_image
 
