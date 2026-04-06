@@ -47,7 +47,7 @@
                 </button>
             </div>
 
-                {% if messages %}
+           {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} mt-3 w-100 {% if message.tags == 'error' %}animate-shake{% endif %}" id="login-message">
                         <i class="fa 
