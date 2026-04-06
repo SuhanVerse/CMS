@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -26,9 +27,16 @@ CSRF_TRUSTED_ORIGINS = env_list(
 )
 
 default_sqlite_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+running_tests = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+if running_tests:
+    database_url = os.environ.get('TEST_DATABASE_URL', default_sqlite_url)
+else:
+    database_url = os.environ.get('DATABASE_URL', default_sqlite_url)
+
 DATABASES = {
     'default': dj_database_url.parse(
-        os.environ.get('DATABASE_URL', default_sqlite_url),
+        database_url,
         conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '60')),
         ssl_require=env_bool('DB_SSL_REQUIRE', False),
     )
