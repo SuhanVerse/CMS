@@ -1,5 +1,8 @@
 -- Canteen Management System
--- Core relational schema derived from the Django models and migrations.
+-- Earlier business-domain reference based on the Django models.
+-- Not exact migration output: extra CHECK rules, defaults, and SQL-level
+-- cascades are illustrative. Use Django migrations for the application database.
+-- See README.md in this directory for the differences.
 -- Target dialect: PostgreSQL
 -- Scope: business/domain tables used in the project ERD
 -- Note: Django framework tables such as sessions, admin logs, and
