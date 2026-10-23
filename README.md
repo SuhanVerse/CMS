@@ -1,6 +1,6 @@
 # Canteen Management System
 
-Updated: 2026-03-12
+Updated: 2026-10-23
 
 This repository contains a Django-based Canteen Management System built for role-based campus food ordering and canteen administration. The project supports local development with SQLite or PostgreSQL and production deployment to Railway with PostgreSQL, WhiteNoise, Gunicorn, and persistent media storage.
 
@@ -37,7 +37,7 @@ Key interface behaviors:
 ## Project Structure
 
 ```text
-/home/suhan/CMS/
+CMS/
 ├── accounts/
 ├── canteen_management/
 │   ├── base.py
@@ -121,7 +121,7 @@ pip install -r requirements.txt
 ### 3. Create a local environment file
 
 ```bash
-cp .env.example .env
+test -e .env || cp .env.example .env
 ```
 
 ### 4. Configure local settings
@@ -137,7 +137,7 @@ DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
 DB_CONN_MAX_AGE=600
 DB_SSL_REQUIRE=False
 DJANGO_MEDIA_URL=/media/
-DJANGO_MEDIA_ROOT=/home/your-user/CMS/public/media
+# DJANGO_MEDIA_ROOT is optional locally; defaults to public/media in this checkout.
 ```
 
 ### 5. Choose your local database
@@ -343,8 +343,13 @@ python manage.py test
 python manage.py collectstatic --noinput
 ```
 
+## Attribution
+
+This repository is a fork of [SubhamParajuli/CMS](https://github.com/SubhamParajuli/CMS). See the Git history for upstream work and changes in this fork.
+
 ## Documentation
 
+- [Schema diagram source](schema.dbml) and [SQL schema](cms_schema.sql) describe the database structure
 - `PROJECT_DETAILED_DOCUMENTATION.md` contains the full project explanation
 - `PROJECT_DIRECTORY_DOCUMENTATION.txt` explains the current repository layout
 - `DBMS_VIVA_GUIDE.md` maps this project directly to DBMS syllabus topics
